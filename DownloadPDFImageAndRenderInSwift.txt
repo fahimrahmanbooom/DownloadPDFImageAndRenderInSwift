@@ -1,0 +1,28 @@
+// FUNCTION TO DOWNLOAD PDF FROM URL
+
+func downloadPDFfromURL(url: URL) -> UIImage? {
+    guard let document = CGPDFDocument(url as CFURL) else { return nil }
+    guard let page = document.page(at: 1) else { return nil }
+    
+    let pageRect = page.getBoxRect(.mediaBox)
+    let renderer = UIGraphicsImageRenderer(size: pageRect.size)
+    let image = renderer.image { ctx in
+        UIColor.white.set()
+        ctx.fill(pageRect)
+        
+        ctx.cgContext.translateBy(x: 0.0, y: pageRect.size.height)
+        ctx.cgContext.scaleBy(x: 1.0, y: -1.0)
+        
+        ctx.cgContext.drawPDFPage(page)
+    }
+    return image
+}
+
+
+// USAGE
+
+guard let url = URL(string: "https://walton-e-app.s3.ap-southeast-1.amazonaws.com/testing/transport-icon-image/trip-enter-driver.pdf") else { return }
+DispatchQueue.global(qos: .background).async {
+    guard let downloadedImage = downloadPDFfromURL(url: url) else { return }
+    DispatchQueue.main.async { self.image = downloadedImage }
+}
